@@ -1,0 +1,44 @@
+name: cross_platform_audio
+description: "A new Flutter plugin project."
+version: 0.0.2
+homepage:
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.16.0'
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: cross_platform_audio_native
+      ios:
+        default_package: cross_platform_audio_native
+      linux:
+        default_package: cross_platform_audio_native
+      macos:
+        default_package: cross_platform_audio_native
+      web:
+        default_package: cross_platform_audio_web
+      windows:
+        default_package: cross_platform_audio_native
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  cross_platform_audio_platform_interface:
+    path: ../cross_platform_audio_platform_interface
+  cross_platform_audio_native:
+    path: ../cross_platform_audio_native
+  cross_platform_audio_web:
+    path: ../cross_platform_audio_web
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+  native_assets_cli: ^0.5.0
+  native_toolchain_c: ^0.4.0
+  plugin_platform_interface: ^2.1.7

@@ -1,0 +1,31 @@
+name: cross_platform_audio_web
+description: "A new Flutter plugin project."
+version: 0.0.2
+homepage:
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.3.0'
+
+flutter:
+  plugin:
+    implements: cross_platform_audio
+    platforms:
+      web:
+        pluginClass: CrossPlatformAudioWebPlugin
+        fileName: cross_platform_audio_web_plugin.dart
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cross_platform_audio_platform_interface:
+    path: ../cross_platform_audio_platform_interface
+  flutter_web_plugins:
+    sdk: flutter
+  web: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+

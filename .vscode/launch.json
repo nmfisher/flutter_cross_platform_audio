@@ -1,0 +1,228 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "cross_platform_audio",
+            "cwd": "cross_platform_audio",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "cross_platform_audio (profile mode)",
+            "cwd": "cross_platform_audio",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "cross_platform_audio (release mode)",
+            "cwd": "cross_platform_audio",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "cross_platform_audio_example",
+            "cwd": "cross_platform_audio_example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "cross_platform_audio_example (profile mode)",
+            "cwd": "cross_platform_audio_example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "cross_platform_audio_example (release mode)",
+            "cwd": "cross_platform_audio_example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "cross_platform_audio_native",
+            "cwd": "cross_platform_audio_native",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "cross_platform_audio_native (profile mode)",
+            "cwd": "cross_platform_audio_native",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "cross_platform_audio_native (release mode)",
+            "cwd": "cross_platform_audio_native",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "cross_platform_audio_platform_interface",
+            "cwd": "cross_platform_audio_platform_interface",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "cross_platform_audio_platform_interface (profile mode)",
+            "cwd": "cross_platform_audio_platform_interface",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "cross_platform_audio_platform_interface (release mode)",
+            "cwd": "cross_platform_audio_platform_interface",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "cross_platform_audio_web",
+            "cwd": "cross_platform_audio_web",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "cross_platform_audio_web (profile mode)",
+            "cwd": "cross_platform_audio_web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "cross_platform_audio_web (release mode)",
+            "cwd": "cross_platform_audio_web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "just_audio",
+            "cwd": "just_audio/just_audio",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "just_audio (profile mode)",
+            "cwd": "just_audio/just_audio",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "just_audio (release mode)",
+            "cwd": "just_audio/just_audio",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "just_audio_background",
+            "cwd": "just_audio/just_audio_background",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "just_audio_background (profile mode)",
+            "cwd": "just_audio/just_audio_background",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "just_audio_background (release mode)",
+            "cwd": "just_audio/just_audio_background",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "just_audio_platform_interface",
+            "cwd": "just_audio/just_audio_platform_interface",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "just_audio_platform_interface (profile mode)",
+            "cwd": "just_audio/just_audio_platform_interface",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "just_audio_platform_interface (release mode)",
+            "cwd": "just_audio/just_audio_platform_interface",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "just_audio_web",
+            "cwd": "just_audio/just_audio_web",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "just_audio_web (profile mode)",
+            "cwd": "just_audio/just_audio_web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "just_audio_web (release mode)",
+            "cwd": "just_audio/just_audio_web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "example",
+            "cwd": "just_audio/just_audio/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "just_audio/just_audio/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "just_audio/just_audio/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "example",
+            "cwd": "just_audio/just_audio_background/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "just_audio/just_audio_background/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "just_audio/just_audio_background/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

@@ -1,0 +1,21 @@
+name: cross_platform_audio_platform_interface
+description: "A new Flutter plugin project."
+version: 0.0.2
+homepage:
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.16.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.7
+  shared_audio_utils:
+    path: ../../shared_audio_utils
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+
