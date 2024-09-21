@@ -32,7 +32,7 @@ class CrossPlatformAudioService extends AudioService {
   }
 
   @override
-  Future<void Function()> playBuffer(Uint8List data, {void Function()? onBegin, void Function()? onComplete, AudioEncoding encoding=AudioEncoding.PCM16, int? sampleRate, bool? stereo, double? start}) {
+  Future<void Function()> playBuffer(Uint8List data, {void Function()? onBegin, void Function()? onComplete, AudioEncoding encoding=const PCM16(sampleRate:16000), int? sampleRate, bool? stereo, double? start}) {
     return CrossPlatformAudioPlatform.instance.service.playBuffer(data, sampleRate:sampleRate, stereo:stereo, onBegin:onBegin, onComplete: onComplete, encoding: encoding, start: start);
   }
 
