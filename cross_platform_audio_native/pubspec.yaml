@@ -30,7 +30,8 @@ dependencies:
   web: ^1.0.0
   audioplayers: ^6.1.0
   wave_builder:
-    path: ../../wave_builder
+    git: 
+      url: https://github.com/nmfisher/wave_builder.git
   cross_platform_audio_platform_interface:
     path: ../cross_platform_audio_platform_interface
   opusfile_dart: ^0.0.1
