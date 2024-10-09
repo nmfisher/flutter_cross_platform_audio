@@ -27,62 +27,43 @@ class AudioBufferSource extends ja.StreamAudioSource {
   }
 }
 
-// just_audio buffer/streaming seems totally broken on macos
-// don't use this!
-class StreamingAudioBufferSource extends ja.StreamAudioSource {
-  final _buffer = Uint8List(44100 * 60);
-  int _writeOffset = 0;
-  final _readOffset = 0;
-  bool _completed = false;
+class StreamingAudioSource extends ja.StreamAudioSource {
+  final Stream<Uint8List> _stream;
+  final String _contentType;
+  final List<int> _buffer = [];
+  int _bufferLength = 0;
+  late final StreamSubscription<Uint8List> _subscription;
+  final _controller = StreamController<List<int>>();
 
-  final Uint8List header;
-
-  late final StreamSubscription _listener;
-
-  StreamingAudioBufferSource(this.header, Stream<Uint8List> audio)
-      : super(tag: 'MyAudioSource') {
-    _buffer.setRange(0, header.length, header);
-    _writeOffset += header.length;
-    _listener = audio.listen((x) async {
-      _buffer.setRange(_writeOffset, _writeOffset + x.length, x);
-      _writeOffset += x.length;
-    }, onDone: () async {
-      _completed = true;
-      await _listener.cancel();
-    });
+  StreamingAudioSource(this._stream, {String contentType = 'audio/mpeg'})
+      : _contentType = contentType {
+    _subscription = _stream.listen(
+      (chunk) {
+        _buffer.addAll(chunk);
+        _bufferLength += chunk.length;
+        _controller.add(chunk);
+      },
+      onError: _controller.addError,
+      onDone: _controller.close,
+    );
   }
 
   @override
   Future<ja.StreamAudioResponse> request([int? start, int? end]) async {
-    print(
-        "Requesting start $start end $end when write offset is $_writeOffset");
-    // if (end != null) {
-    // while (_completed == false) {
-    //   print("Underflow, waiting..");
-    //   await Future.delayed(Duration(seconds: 3));
-    // }
-    // }
-    var contentLength = null;
-    end ??= _writeOffset;
-    // if (end == null) {
-    //   contentLength = _writeOffset - (start ?? 0);
-    // } else {
-    contentLength = end! - start!;
-    // }
-    print("Returning sublist from $start to $end");
-    // Returning the stream audio response with the parameters
     return ja.StreamAudioResponse(
-      sourceLength: _completed ? _writeOffset : null,
-      contentLength: contentLength,
-      offset: start ?? 0,
-      stream: Stream.fromIterable([_buffer.sublist(start ?? 0, end).toList()]),
-      contentType: 'audio/wav',
+      sourceLength: null, // Unknown total length
+      contentLength: end! - start!,
+      offset: start,
+      stream: Stream.value(_buffer.sublist(start!, end!)),
+      contentType: _contentType,
     );
   }
 }
 
 class NativeAudioService extends AudioService {
   final _decoder = OpusFileDecoder();
+  final _channel =
+      const MethodChannel("com.nick-fisher.cross_platform_audio_native");
 
   Logger get log => Logger(this.runtimeType.toString());
 
@@ -240,31 +221,25 @@ class NativeAudioService extends AudioService {
     return canceller;
   }
 
+  @override
   Future playStream(Stream<Uint8List> data, int frequency, bool stereo,
       {void Function()? onComplete}) async {
-    var waveBuilder = WaveBuilder(frequency: frequency, stereo: stereo);
-    // var header = Uint8List.fromList(waveBuilder.fileBytes);
+    await _channel.invokeMethod("initializeAudioPlayer",
+        {"sampleRate": frequency, "channels": stereo ? 2 : 1});
 
-    // var source = StreamingAudioBufferSource(header, data);
-    // var player = ja.AudioPlayer();
-
-    // await player.setAudioSource(source);
-    // if (onComplete != null) {
-    //   late StreamSubscription _listener;
-    //   _listener = player.playerStateStream.listen((state) {
-    //     if (state.processingState == ja.ProcessingState.buffering) {
-    //       _listener.cancel();
-    //       onComplete.call();
-    //     }
-    //   });
-    // }
-    // await player.play();
-    throw Exception("FOO");
-    // var converted = Uint8List.fromList(waveBuilder.fileBytes);
-    // var player = ap.AudioPlayer();
-    // await player.setSourceAsset(path) .setSourceBytes(Uint8List.fromList(waveBuilder.fileBytes), mimeType: "audio/wav");
-    // await player.seek(Duration.zero);
-    // await player.resume();
+    late StreamSubscription listener;
+    bool started = false;
+    listener = data.listen((d) async {
+      await _channel.invokeMethod("addAudioData", {"audioData": d});
+      await _channel.invokeMethod("startPlayback");
+      if (!started) {
+        started = true;
+      }
+    }, onDone: () async {
+      listener.cancel();
+    }, onError: (obj) {
+      listener.cancel();
+    });
   }
 
   @override

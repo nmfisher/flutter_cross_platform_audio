@@ -17,15 +17,17 @@ flutter:
         dartPluginClass: CrossPlatformAudioNativePlugin
       macos:
         dartPluginClass: CrossPlatformAudioNativePlugin
+        pluginClass: CrossPlatformAudioNativePlugin
       windows:
         dartPluginClass: CrossPlatformAudioNativePlugin
       linux:
         dartPluginClass: CrossPlatformAudioNativePlugin
+        
 
 dependencies:
   flutter:
     sdk: flutter
-  audio_session:
+  # audio_session:
   just_audio: ^0.9.40
   web: ^1.0.0
   audioplayers: ^6.1.0
