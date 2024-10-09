@@ -9,56 +9,7 @@ import 'package:wave_builder/wave_builder.dart';
 import 'package:shared_audio_utils/shared_audio_utils.dart';
 import 'package:audioplayers/audioplayers.dart' as ap;
 
-class AudioBufferSource extends ja.StreamAudioSource {
-  final Uint8List _buffer;
-
-  AudioBufferSource(this._buffer) : super(tag: 'MyAudioSource');
-
-  @override
-  Future<ja.StreamAudioResponse> request([int? start, int? end]) async {
-    // Returning the stream audio response with the parameters
-    return ja.StreamAudioResponse(
-      sourceLength: _buffer.length,
-      contentLength: (end ?? _buffer.length) - (start ?? 0),
-      offset: start ?? 0,
-      stream: Stream.fromIterable([_buffer.sublist(start ?? 0, end)]),
-      contentType: 'audio/wav',
-    );
-  }
-}
-
-class StreamingAudioSource extends ja.StreamAudioSource {
-  final Stream<Uint8List> _stream;
-  final String _contentType;
-  final List<int> _buffer = [];
-  int _bufferLength = 0;
-  late final StreamSubscription<Uint8List> _subscription;
-  final _controller = StreamController<List<int>>();
-
-  StreamingAudioSource(this._stream, {String contentType = 'audio/mpeg'})
-      : _contentType = contentType {
-    _subscription = _stream.listen(
-      (chunk) {
-        _buffer.addAll(chunk);
-        _bufferLength += chunk.length;
-        _controller.add(chunk);
-      },
-      onError: _controller.addError,
-      onDone: _controller.close,
-    );
-  }
-
-  @override
-  Future<ja.StreamAudioResponse> request([int? start, int? end]) async {
-    return ja.StreamAudioResponse(
-      sourceLength: null, // Unknown total length
-      contentLength: end! - start!,
-      offset: start,
-      stream: Stream.value(_buffer.sublist(start!, end!)),
-      contentType: _contentType,
-    );
-  }
-}
+import 'streaming/streaming.dart';
 
 class NativeAudioService extends AudioService {
   final _decoder = OpusFileDecoder();
@@ -93,7 +44,8 @@ class NativeAudioService extends AudioService {
   ///
   /// Plays the audio located at the specified [path] (interpreted as either a file or asset path, depending on [source])
   ///
-  Future play(
+  @override
+  Future<CancelPlayback> play(
     String path, {
     AudioSource source = AudioSource.File,
     String? package,
@@ -118,9 +70,12 @@ class NativeAudioService extends AudioService {
       }
     });
     await player.play();
+    return () async {
+      await player.stop();
+    };
   }
 
-  Future<void Function()> playBuffer(Uint8List data,
+  Future<CancelPlayback> playBuffer(Uint8List data,
       {void Function()? onComplete,
       void Function()? onBegin,
       AudioEncoding encoding = const PCM16(sampleRate: 16000),
@@ -157,7 +112,7 @@ class NativeAudioService extends AudioService {
         throw Exception("Unrecognied audio format");
     }
 
-    late void Function() canceller;
+    late Future Function() canceller;
 
     if (Platform.isMacOS) {
       bool hasBegun = false;
@@ -179,7 +134,7 @@ class NativeAudioService extends AudioService {
         await player.seek(Duration(milliseconds: (start * 1000).toInt()));
       }
       await player.resume();
-      canceller = () {
+      canceller = () async {
         player.stop();
       };
     } else {
@@ -213,7 +168,7 @@ class NativeAudioService extends AudioService {
 
       await player.load();
 
-      canceller = () {
+      canceller = () async {
         player.stop();
       };
       player.play();
@@ -222,24 +177,53 @@ class NativeAudioService extends AudioService {
   }
 
   @override
-  Future playStream(Stream<Uint8List> data, int frequency, bool stereo,
+  Future<CancelPlayback> playStream(
+      Stream<Uint8List> data, int frequency, bool stereo,
       {void Function()? onComplete}) async {
     await _channel.invokeMethod("initializeAudioPlayer",
         {"sampleRate": frequency, "channels": stereo ? 2 : 1});
 
+    int totalSamples = 0;
     late StreamSubscription listener;
-    bool started = false;
+
+    late DateTime startTime;
+
     listener = data.listen((d) async {
       await _channel.invokeMethod("addAudioData", {"audioData": d});
-      await _channel.invokeMethod("startPlayback");
-      if (!started) {
-        started = true;
-      }
+      totalSamples += d.length ~/
+          (stereo ? 4 : 2); // 2 bytes per sample, 2 channels if stereo
     }, onDone: () async {
-      listener.cancel();
-    }, onError: (obj) {
-      listener.cancel();
+      var duration = ((totalSamples / frequency) * 1000).toInt();
+      var elapsed = DateTime.now().millisecondsSinceEpoch -
+          startTime.millisecondsSinceEpoch;
+
+      print(
+          "Estimated audio duration: ${duration}ms, elapsed ${elapsed}");
+      if (duration > elapsed) {
+        print("Waiting for ${duration - elapsed}");
+        await Future.delayed(Duration(milliseconds: duration - elapsed));
+      }
+
+      await _channel.invokeMethod("streamComplete");
+      await _channel.invokeMethod("stopPlayback");
+      await _channel.invokeMethod("destroyAudioPlayer");
+      onComplete?.call();
+      print("COMPLETE");
+    }, onError: (obj) async {
+      await _channel.invokeMethod("stopPlayback");
+      await _channel.invokeMethod("destroyAudioPlayer");
+      onComplete?.call();
     });
+
+    await _channel.invokeMethod("startPlayback");
+    startTime = DateTime.now();
+
+    return () async {
+      await listener.cancel();
+      await _channel.invokeMethod("stopPlayback");
+      await _channel.invokeMethod("destroyAudioPlayer");
+      onComplete?.call();
+    };
   }
 
   @override

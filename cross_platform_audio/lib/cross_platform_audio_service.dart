@@ -21,7 +21,7 @@ class CrossPlatformAudioService extends AudioService {
   }
 
   @override
-  Future play(String path,
+  Future<CancelPlayback> play(String path,
       {AudioSource source = AudioSource.File,
       String? package,
       void Function()? onBegin,
@@ -32,7 +32,7 @@ class CrossPlatformAudioService extends AudioService {
   }
 
   @override
-  Future<void Function()> playBuffer(Uint8List data, {void Function()? onBegin, void Function()? onComplete, AudioEncoding encoding=const PCM16(sampleRate:16000), int? sampleRate, bool? stereo, double? start}) {
+  Future<CancelPlayback> playBuffer(Uint8List data, {void Function()? onBegin, void Function()? onComplete, AudioEncoding encoding=const PCM16(sampleRate:16000), int? sampleRate, bool? stereo, double? start}) {
     return CrossPlatformAudioPlatform.instance.service.playBuffer(data, sampleRate:sampleRate, stereo:stereo, onBegin:onBegin, onComplete: onComplete, encoding: encoding, start: start);
   }
 
@@ -48,7 +48,7 @@ class CrossPlatformAudioService extends AudioService {
   }
   
   @override
-  Future playStream(Stream<Uint8List> data, int frequency, bool stereo, {void Function()? onComplete}) {
+  Future<CancelPlayback> playStream(Stream<Uint8List> data, int frequency, bool stereo, {void Function()? onComplete}) {
     return CrossPlatformAudioPlatform.instance.service.playStream(data, frequency, stereo, onComplete: onComplete); 
   }
 
