@@ -15,10 +15,6 @@ public class CrossPlatformAudioNativePlugin: NSObject, FlutterPlugin {
         print(call.method)
         switch call.method {
         case "initializeAudioPlayer":
-            if audioPlayer != nil {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "An AudioPlayer instance already exists, call destroyAudioPlayer", details: nil))
-                return
-            }
             guard let args = call.arguments as? [String: Any],
                   let sampleRate = args["sampleRate"] as? Double,
                   let channels = args["channels"] as? Int else {
