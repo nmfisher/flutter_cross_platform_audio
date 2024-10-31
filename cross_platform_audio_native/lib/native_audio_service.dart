@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'package:flutter_soloud/flutter_soloud.dart' as sl;
 import 'package:logging/logging.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 import 'package:opusfile_dart/opusfile_dart.dart';
@@ -13,13 +14,12 @@ import 'streaming/streaming.dart';
 
 class NativeAudioService extends AudioService {
   final _decoder = OpusFileDecoder();
-  final _channel =
-      const MethodChannel("com.nick-fisher.cross_platform_audio_native");
 
-  Logger get log => Logger(this.runtimeType.toString());
+  final _logger = Logger("NativeAudioService");
 
+  @override
   Future initialize() async {
-    // noop
+    await sl.SoLoud.instance.init();
   }
 
   void dispose() {}
@@ -180,8 +180,14 @@ class NativeAudioService extends AudioService {
   Future<CancelPlayback> playStream(
       Stream<Uint8List> data, int frequency, bool stereo,
       {void Function()? onComplete}) async {
-    await _channel.invokeMethod("initializeAudioPlayer",
-        {"sampleRate": frequency, "channels": stereo ? 2 : 1});
+    /// Initialize the stream to reflect the requested PCM data format.
+    final currentSound = sl.SoLoud.instance.setBufferStream(
+      maxBufferSize: 1024 * 1024 * 10, // 10 MB
+      sampleRate: frequency,
+      channels: stereo ? sl.Channels.stereo : sl.Channels.mono,
+      pcmFormat: sl.BufferPcmType.s16le,
+      onBuffering: (_, __, ___) async {},
+    );
 
     int totalSamples = 0;
     late StreamSubscription listener;
@@ -194,11 +200,27 @@ class NativeAudioService extends AudioService {
       if (wasCancelled) {
         return;
       }
-      _channel.invokeMethod("addAudioData", {"audioData": d});
+      try {
+        sl.SoLoud.instance.addAudioDataStreamU8(currentSound, d);
+      } on sl.SoLoudPcmBufferFullOrStreamEndedCppException {
+        _logger.severe('pcm buffer full or stream already set '
+            'to be ended');
+      } catch (e) {
+        _logger.severe(e);
+      }
+
+      /// If this is the first chunk, start the audio.
+      if (totalSamples == 0) {
+        await sl.SoLoud.instance.play(currentSound);
+      }
+
       totalSamples += d.length ~/
           (stereo ? 4 : 2); // 2 bytes per sample, 2 channels if stereo
+
+
     }, onDone: () async {
       await listener.cancel();
+      sl.SoLoud.instance.setDataIsEnded(currentSound);
       if (wasCancelled) {
         return;
       }
@@ -206,9 +228,9 @@ class NativeAudioService extends AudioService {
       var elapsed = DateTime.now().millisecondsSinceEpoch -
           startTime.millisecondsSinceEpoch;
 
-      print("Estimated audio duration: ${duration}ms, elapsed ${elapsed}");
+      _logger.info("Estimated audio duration: ${duration}ms, elapsed ${elapsed}");
       if (duration > elapsed) {
-        print("Waiting for ${duration - elapsed}");
+        _logger.info("Waiting for ${duration - elapsed}");
         await Future.delayed(Duration(milliseconds: duration - elapsed));
       }
 
@@ -216,27 +238,18 @@ class NativeAudioService extends AudioService {
         return;
       }
 
-      await _channel.invokeMethod("streamComplete");
-      await _channel.invokeMethod("stopPlayback");
-      await _channel.invokeMethod("destroyAudioPlayer");
       onComplete?.call();
     }, onError: (err) async {
-      print("ERROR : $err");
-      await _channel.invokeMethod("stopPlayback");
-      await _channel.invokeMethod("destroyAudioPlayer");
+      _logger.severe(err);
+      sl.SoLoud.instance.setDataIsEnded(currentSound);
       onComplete?.call();
     });
 
-    await _channel.invokeMethod("startPlayback");
     startTime = DateTime.now();
 
     return () async {
-      print("CANCELLING");
       wasCancelled = true;
       await listener.cancel();
-      await _channel.invokeMethod("stopPlayback");
-      await _channel.invokeMethod("destroyAudioPlayer");
-      print("CANCELLED");
     };
   }
 
