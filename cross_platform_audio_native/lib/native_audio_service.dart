@@ -188,28 +188,40 @@ class NativeAudioService extends AudioService {
 
     late DateTime startTime;
 
+    bool wasCancelled = false;
+
     listener = data.listen((d) async {
-      await _channel.invokeMethod("addAudioData", {"audioData": d});
+      if (wasCancelled) {
+        return;
+      }
+      _channel.invokeMethod("addAudioData", {"audioData": d});
       totalSamples += d.length ~/
           (stereo ? 4 : 2); // 2 bytes per sample, 2 channels if stereo
     }, onDone: () async {
+      await listener.cancel();
+      if (wasCancelled) {
+        return;
+      }
       var duration = ((totalSamples / frequency) * 1000).toInt();
       var elapsed = DateTime.now().millisecondsSinceEpoch -
           startTime.millisecondsSinceEpoch;
 
-      print(
-          "Estimated audio duration: ${duration}ms, elapsed ${elapsed}");
+      print("Estimated audio duration: ${duration}ms, elapsed ${elapsed}");
       if (duration > elapsed) {
         print("Waiting for ${duration - elapsed}");
         await Future.delayed(Duration(milliseconds: duration - elapsed));
+      }
+
+      if (wasCancelled) {
+        return;
       }
 
       await _channel.invokeMethod("streamComplete");
       await _channel.invokeMethod("stopPlayback");
       await _channel.invokeMethod("destroyAudioPlayer");
       onComplete?.call();
-      print("COMPLETE");
-    }, onError: (obj) async {
+    }, onError: (err) async {
+      print("ERROR : $err");
       await _channel.invokeMethod("stopPlayback");
       await _channel.invokeMethod("destroyAudioPlayer");
       onComplete?.call();
@@ -219,10 +231,12 @@ class NativeAudioService extends AudioService {
     startTime = DateTime.now();
 
     return () async {
+      print("CANCELLING");
+      wasCancelled = true;
       await listener.cancel();
       await _channel.invokeMethod("stopPlayback");
       await _channel.invokeMethod("destroyAudioPlayer");
-      onComplete?.call();
+      print("CANCELLED");
     };
   }
 
