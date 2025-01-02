@@ -33,7 +33,7 @@ dependencies:
   flutter_soloud:
     git: 
       url: https://github.com/alnitak/flutter_soloud.git
-      ref: websocket
+      ref: 551f541c1096158338bba3241add1ef73b591ee3
   wave_builder:
     git: 
       url: https://github.com/nmfisher/wave_builder.git
