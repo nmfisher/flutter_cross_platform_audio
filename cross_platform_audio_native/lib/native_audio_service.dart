@@ -180,7 +180,7 @@ class NativeAudioService extends AudioService {
   Future<CancelPlayback> playStream(
       Stream<Uint8List> data, int frequency, bool stereo,
       {void Function()? onComplete}) async {
-    /// Initialize the stream to reflect the requested PCM data format.
+    //  Initialize the stream to reflect the requested PCM data format.
     final currentSound = sl.SoLoud.instance.setBufferStream(
       maxBufferSize: 1024 * 1024 * 10, // 10 MB
       sampleRate: frequency,
@@ -201,34 +201,33 @@ class NativeAudioService extends AudioService {
         return;
       }
       try {
-        sl.SoLoud.instance.addAudioDataStreamU8(currentSound, d);
-      } on sl.SoLoudPcmBufferFullOrStreamEndedCppException {
-        _logger.severe('pcm buffer full or stream already set '
-            'to be ended');
+        sl.SoLoud.instance.addAudioDataStream(currentSound, d);
       } catch (e) {
         _logger.severe(e);
+        return;
       }
 
       /// If this is the first chunk, start the audio.
       if (totalSamples == 0) {
         await sl.SoLoud.instance.play(currentSound);
+        startTime = DateTime.now();
       }
 
       totalSamples += d.length ~/
           (stereo ? 4 : 2); // 2 bytes per sample, 2 channels if stereo
-
-
     }, onDone: () async {
-      await listener.cancel();
       sl.SoLoud.instance.setDataIsEnded(currentSound);
       if (wasCancelled) {
         return;
       }
-      var duration = ((totalSamples / frequency) * 1000).toInt();
+      var duration =
+          ((totalSamples.toDouble() / frequency.toDouble()) * 1000).toInt();
       var elapsed = DateTime.now().millisecondsSinceEpoch -
           startTime.millisecondsSinceEpoch;
 
-      _logger.info("Estimated audio duration: ${duration}ms, elapsed ${elapsed}");
+      _logger.info(
+          "Audio stream done ($totalSamples received, ${duration}ms duration, ${elapsed}ms elapsed since playback started)");
+
       if (duration > elapsed) {
         _logger.info("Waiting for ${duration - elapsed}");
         await Future.delayed(Duration(milliseconds: duration - elapsed));
@@ -245,9 +244,8 @@ class NativeAudioService extends AudioService {
       onComplete?.call();
     });
 
-    startTime = DateTime.now();
-
     return () async {
+      _logger.info("Audio stream cancelled");
       wasCancelled = true;
       await listener.cancel();
     };
