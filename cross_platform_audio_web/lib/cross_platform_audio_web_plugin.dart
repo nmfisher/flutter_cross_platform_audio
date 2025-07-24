@@ -17,7 +17,7 @@ class WebAudioService extends AudioService {
 
   @override
   Future initialize() async {
-    context = w.AudioContext();
+  
   }
 
   @override
@@ -31,6 +31,8 @@ class WebAudioService extends AudioService {
     if (source == AudioSource.File) {
       throw Exception();
     }
+
+    context = w.AudioContext(w.AudioContextOptions(sampleRate: sampleRate));
 
     var bufferSource = context.createBufferSource(); // creates a sound source
     var audioData = await rootBundle.load(path);
@@ -58,6 +60,7 @@ class WebAudioService extends AudioService {
       bool? stereo,
       double? start}) async {
     try {
+      context = w.AudioContext(w.AudioContextOptions(sampleRate: sampleRate ?? 24000));
       var bufferSource = w.AudioBufferSourceNode(context);
       late w.AudioBuffer audioBuffer;
       if (encoding == const PCM16()) {
@@ -143,10 +146,10 @@ class WebAudioService extends AudioService {
   Future<CancelPlayback> playStream(
       Stream<Uint8List> data, int frequency, bool stereo,
       {void Function()? onComplete}) async {
+
+    context = w.AudioContext(w.AudioContextOptions(sampleRate: frequency));
+
     try {
-      // Create a ScriptProcessorNode for real-time audio processing
-      // Note: ScriptProcessorNode is deprecated but still widely supported
-      // In production, consider using AudioWorklet when Flutter web supports it better
       final int bufferSize = 4096; // Common buffer size
       final int channels = stereo ? 2 : 1;
 
