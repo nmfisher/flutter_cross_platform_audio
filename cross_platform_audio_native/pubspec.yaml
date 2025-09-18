@@ -39,7 +39,7 @@ dependencies:
       url: https://github.com/nmfisher/wave_builder.git
   cross_platform_audio_platform_interface:
     path: ../cross_platform_audio_platform_interface
-  opusfile_dart: ^0.0.1
+  opusfile_dart: 0.0.3
   logging: ^1.2.0
   # audio_session: ^0.1.21
 
